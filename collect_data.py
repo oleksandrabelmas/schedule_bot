@@ -72,11 +72,26 @@ def get_data(sheet_id, sheet_name):
         f.write(json.dumps(class_schedule))
 
 
-#def main():
-#    get_data(SHEET_ID, SHEET_NAME)
-#    while True:
-#        remembering('data.json', '11-А')
-#
-#
-#if __name__ == '__main__':
-#    main()
+# збираю данні про класи про класи
+def get_classes():
+
+    with open('data.json', 'r') as f:
+        schdl = json.load(f)
+
+    class_numbers = []
+
+    for class_number, class_schedule in schdl.items():
+        class_numbers.append(class_number)
+
+    class_dict = {}
+    for c in class_numbers:
+
+        c = c.strip().strip('\n').split('-')
+
+        if c[0] in class_dict:
+            class_dict[c[0]].append(c[1])
+        else:
+            class_dict[c[0]] = []
+            class_dict[c[0]].append(c[1])
+
+    return class_dict

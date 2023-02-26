@@ -5,21 +5,36 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 
 from states import MyStates
-from main import get_data
-from reply import cancel
+from collect_data import get_data
+from reply import *
 
 
 SHEET_ID = '165FEfvPuH9CfYK0qLp1Xa6o35aTW7WKdOmy5eqEvmWw'
 SHEET_NAME = 'Розклад 20.02.2023 по 24.02.2023'
 
 
-async def start_message(message: types.Message, state: FSMContext):
+async def class_num(message: types.Message, state: FSMContext):
+    await message.answer(f'Привіт {message.from_user.first_name}, вибери номер класу', reply_markup=class_number_kb)
+    await MyStates.choose_class_letter.set()
+
+
+async def choose_class(message: types.Message, state: FSMContext):
+
+    # створюємо клавіатуру тут бо єбу як зробить не тут
+    kb = ReplyKeyboardMarkup(
+        resize_keyboard=True
+    )
+
+    for n, l in get_classes().items():
+        if message.text == n:
+            for letter in l:
+                kb.insert(KeyboardButton(letter))
+
+    await message.answer('Вибери свій клас', reply_markup=kb)
     await MyStates.schedule.set()
-    await message.answer(f'Привіт {message.from_user.first_name}, введіть свій клас через пробіл. Наприклад: 5 В, 8 Г, 10 А')
 
 
 async def schedule(message: types.Message, state: FSMContext):
-    await MyStates.schedule.set()
 
     get_data(SHEET_ID, SHEET_NAME)
 
@@ -75,7 +90,7 @@ async def schedule(message: types.Message, state: FSMContext):
 #async def menu(dp: Dispatcher, state: FSMContext):
 
 
-
 def register_handlers(dp: Dispatcher):
-    dp.register_message_handler(start_message, commands=['start'], state='*')
+    dp.register_message_handler(class_num, commands=['start'], state='*')
+    dp.register_message_handler(choose_class, state=MyStates.choose_class_letter)
     dp.register_message_handler(schedule, state=MyStates.schedule)
