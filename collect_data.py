@@ -1,17 +1,35 @@
 import os.path
-import time
 import json
 
 from google.oauth2 import service_account
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
+import requests
+from bs4 import BeautifulSoup
+
 
 SHEET_ID = '165FEfvPuH9CfYK0qLp1Xa6o35aTW7WKdOmy5eqEvmWw'
 SHEET_NAME = 'Розклад 20.02.2023 по 24.02.2023'
 
 
-def get_data(sheet_id, sheet_name):
+def get_data(sheet_link):
+
+    # отримую данні про сторінку з силка(парсинг)
+    try:
+        r = requests.get(sheet_link)
+        src = r.text
+
+        soup = BeautifulSoup(src, 'lxml')
+
+        sheet_name = soup.find('div', {'class': 'docs-sheet-tab-caption'}).text
+
+        sheet_id = sheet_link.split('/')[5]
+
+    except:
+        print('Oh no, something is wrong')
+        return False
+
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     SERVICE_ACCOUNT_FILE = os.path.join(BASE_DIR, 'credentials.json')
@@ -75,23 +93,29 @@ def get_data(sheet_id, sheet_name):
 # збираю данні про класи про класи
 def get_classes():
 
-    with open('data.json', 'r') as f:
-        schdl = json.load(f)
+    try:
+        with open('data.json', 'r') as f:
+            schdl = json.load(f)
 
-    class_numbers = []
+        class_numbers = []
 
-    for class_number, class_schedule in schdl.items():
-        class_numbers.append(class_number)
+        for class_number, class_schedule in schdl.items():
+            class_numbers.append(class_number)
 
-    class_dict = {}
-    for c in class_numbers:
+        class_dict = {}
+        for c in class_numbers:
 
-        c = c.strip().strip('\n').split('-')
+            c = c.strip().strip('\n').split('-')
 
-        if c[0] in class_dict:
-            class_dict[c[0]].append(c[1])
-        else:
-            class_dict[c[0]] = []
-            class_dict[c[0]].append(c[1])
+            if c[0] in class_dict:
+                class_dict[c[0]].append(c[1])
+            else:
+                class_dict[c[0]] = []
+                class_dict[c[0]].append(c[1])
 
-    return class_dict
+        return class_dict
+
+    except Exception as ex:
+        print(ex)
+
+

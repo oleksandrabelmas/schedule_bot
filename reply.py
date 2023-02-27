@@ -1,12 +1,26 @@
-from aiogram.types.reply_keyboard import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, KeyboardButtonRequestUser
+from aiogram.types.reply_keyboard import ReplyKeyboardMarkup, KeyboardButton
 from collect_data import get_classes
+
+
+start_kb = ReplyKeyboardMarkup(
+    keyboard=[
+        [
+            KeyboardButton('Розпочати')
+        ],
+    ],
+    resize_keyboard=True,
+    one_time_keyboard=True,
+)
 
 
 class_number_kb = ReplyKeyboardMarkup(
     resize_keyboard=True
 )
-for k, v in get_classes().items():
-    class_number_kb.insert(KeyboardButton(k))
+try:
+    for k, v in get_classes().items():
+        class_number_kb.insert(KeyboardButton(k))
+except Exception as ex:
+    print(ex)
 
 
 cancel = ReplyKeyboardMarkup(
@@ -20,3 +34,15 @@ cancel = ReplyKeyboardMarkup(
                                )
 
 
+admin_kb = ReplyKeyboardMarkup(
+    keyboard=[
+        [
+            KeyboardButton('Розпочати нагадування')
+        ],
+        [
+            KeyboardButton('Змінити розклад')
+        ]
+    ],
+    resize_keyboard=True,
+    one_time_keyboard=True,
+)
