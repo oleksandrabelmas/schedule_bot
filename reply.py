@@ -5,7 +5,7 @@ from collect_data import get_classes
 start_kb = ReplyKeyboardMarkup(
     keyboard=[
         [
-            KeyboardButton('Розпочати')
+            KeyboardButton('Розпочати нагадування')
         ],
     ],
     resize_keyboard=True,

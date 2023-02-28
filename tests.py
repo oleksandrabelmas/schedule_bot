@@ -1,22 +1,43 @@
-from bs4 import BeautifulSoup
-import requests
+from bots_data import *
+
+import psycopg2
 
 
-link = 'https://docs.google.com/spreadsheets/d/1dYQlz8wP3he67hDlhjqk5KVDBuUTmKkXuSSvK6wx7XU/edit#gid=508591041'
+def select_func(user_tg_id):
+    try:
+        connection = psycopg2.connect(
+            host=HOST,
+            user=USER,
+            password=PASSWORD,
+            database=DB_NAME,
+        )
+
+        connection.autocommit = True
+
+        cursor = connection.cursor()
+
+        # перевіряємо чи користувач вже зареєстрований
+        cursor.execute(
+            f"""
+            SELECT * FROM users 
+            WHERE user_tg_id = '{user_tg_id}';
+            """
+        )
+
+        if cursor.fetchone():
+            return True
+
+        else:
+            return False
+
+    except Exception as ex:
+        print(ex)
+
+    finally:
+        if connection:
+            cursor.close()
+            connection.close()
+            print('success')
 
 
-def parser_func(sheet_link):
-    r = requests.get(sheet_link)
-    src = r.text
-
-    soup = BeautifulSoup(src, 'lxml')
-
-    sheet_name = soup.find('div', {'class': 'docs-sheet-tab-caption'}).text
-
-    sheet_id = sheet_link.split('/')[5]
-
-    print(sheet_name, sheet_id)
-
-
-if __name__ == '__main__':
-    parser_func(link)
+select_data(5146241627)

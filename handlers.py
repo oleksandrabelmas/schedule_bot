@@ -3,11 +3,13 @@ import time
 
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters import Text
 
 from states import MyStates
 from collect_data import get_data
 from reply import *
 from bots_data import ADMIN_USER_LIST
+from psql_func import insert_func, select_func
 
 
 # решаю как бидло через глобальную переменую
@@ -21,9 +23,13 @@ async def start_menu(message: types.Message, state: FSMContext):
         await MyStates.admin.set()
 
     else:
-        await message.answer(f'Привіт {message.from_user.first_name}, це бот з нагадуваннями про уроки', reply_markup=start_kb)
-        print(message.from_user.id)
-        await MyStates.choose_class_number.set()
+
+        if select_func(message.from_user.id) is True:
+            await MyStates.schedule.set()
+
+        elif select_func(message.from_user.id) is False:
+            await message.answer(f'Привіт {message.from_user.first_name}, це бот з нагадуваннями про уроки', reply_markup=start_kb)
+            await MyStates.choose_class_number.set()
 
 
 ############################################### Адмін частина ##########################################################
@@ -40,7 +46,6 @@ async def admin(message: types.Message, state: FSMContext):
 async def change_schedule(message: types.Message, state: FSMContext):
 
     schedule_link = message.text
-    print(schedule_link)
     get_data(schedule_link)
 
     if get_data(schedule_link) is False:
@@ -79,6 +84,8 @@ async def schedule(message: types.Message, state: FSMContext):
     user_class_number += message.text
 
     user_class_number = '-'.join(user_class_number)
+
+    insert_func(message.from_user.id, message.from_user.first_name, user_class_number)
 
     try:
         with open('data.json', 'r') as f:
@@ -129,6 +136,6 @@ def register_handlers(dp: Dispatcher):
     dp.register_message_handler(start_menu, commands=['start'], state='*')
     dp.register_message_handler(admin, state=MyStates.admin)
     dp.register_message_handler(change_schedule, state=MyStates.change_schedule)
-    dp.register_message_handler(class_num, state=MyStates.choose_class_number)
+    dp.register_message_handler(class_num, Text(equals='Розпочати нагадування', ignore_case=True), state='*')
     dp.register_message_handler(choose_class, state=MyStates.choose_class_letter)
     dp.register_message_handler(schedule, state=MyStates.schedule)
